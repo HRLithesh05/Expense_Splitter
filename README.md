@@ -9,31 +9,6 @@
 
 **A robust web application for tracking and splitting shared expenses among group members**
 
-[Features](#features) • [Demo](#demo) • [Installation](#installation) • [Usage](#usage) • [Technologies](#technologies) • [Contributing](#contributing)
-
-</div>
-
----
-
-## 📋 Table of Contents
-
-- [About](#about)
-- [Features](#features)
-- [Demo](#demo)
-- [Technologies](#technologies)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Database Schema](#database-schema)
-- [API Endpoints](#api-endpoints)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
-
----
-
 ## 🎯 About
 
 **Expense Splitter** is a full-stack Java web application designed to simplify the process of tracking and splitting expenses among groups. Whether you're managing household expenses, splitting bills with roommates, or tracking group trip costs, this application provides an intuitive interface to manage shared finances effortlessly.
