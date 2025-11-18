@@ -1,6 +1,5 @@
 package servlet;
 
-
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -55,7 +54,12 @@ public class AddMemberServlet extends HttpServlet {
         } else {
             request.setAttribute("errorMessage", "Name and email are required fields.");
         }
-        
-        request.getRequestDispatcher("/addMember.jsp").forward(request, response);
+        // Forward to JSP after processing
+        request.getRequestDispatcher("addMember.jsp").forward(request, response);
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.getRequestDispatcher("addMember.jsp").forward(request, response);
     }
 }
