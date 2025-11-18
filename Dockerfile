@@ -1,43 +1,51 @@
+# Use Tomcat 10 with JDK 17 as base image
 FROM tomcat:10-jdk17
 
-# Remove all default webapps
-RUN rm -rf /usr/local/tomcat/webapps/*
+# Set working directory
+WORKDIR /usr/local/tomcat
 
-# Create ROOT directory structure
-RUN mkdir -p /usr/local/tomcat/webapps/ROOT/WEB-INF/classes \
-             /usr/local/tomcat/webapps/ROOT/WEB-INF/lib
+# Remove default Tomcat webapps
+RUN rm -rf webapps/*
 
-# Download MySQL JDBC driver directly to lib
+# Create ROOT webapp directory structure
+RUN mkdir -p webapps/ROOT/WEB-INF/classes \
+             webapps/ROOT/WEB-INF/lib
+
+# Download MySQL JDBC driver
 ADD https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar \
-    /usr/local/tomcat/webapps/ROOT/WEB-INF/lib/
+    webapps/ROOT/WEB-INF/lib/mysql-connector-j-8.0.33.jar
 
 # Download Jakarta Servlet API for compilation
 ADD https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/5.0.0/jakarta.servlet-api-5.0.0.jar \
-    /tmp/servlet-api.jar
+    /tmp/jakarta.servlet-api-5.0.0.jar
 
-# Copy all webapp content
-COPY src/main/webapp/ /usr/local/tomcat/webapps/ROOT/
+# Copy webapp files (JSP, HTML, CSS, JS)
+COPY src/main/webapp/ webapps/ROOT/
 
-# Copy Java source files temporarily
-COPY src/main/java /tmp/src
+# Copy Java source files for compilation
+COPY src/main/java /tmp/java-src
 
-# Compile all Java files
-RUN cd /tmp/src && \
-    find . -name "*.java" > sources.txt && \
+# Compile Java classes
+RUN cd /tmp/java-src && \
+    find . -name "*.java" -type f > /tmp/sources.txt && \
     javac -encoding UTF-8 \
-          -cp "/usr/local/tomcat/lib/*:/usr/local/tomcat/webapps/ROOT/WEB-INF/lib/*:/tmp/servlet-api.jar" \
-          -d /usr/local/tomcat/webapps/ROOT/WEB-INF/classes \
-          @sources.txt && \
-    rm -rf /tmp/src /tmp/servlet-api.jar
+          -source 17 \
+          -target 17 \
+          -cp "/usr/local/tomcat/lib/*:webapps/ROOT/WEB-INF/lib/*:/tmp/jakarta.servlet-api-5.0.0.jar" \
+          -d webapps/ROOT/WEB-INF/classes \
+          @/tmp/sources.txt && \
+    echo "Compilation successful" && \
+    rm -rf /tmp/java-src /tmp/jakarta.servlet-api-5.0.0.jar /tmp/sources.txt
 
-# Verify what was created
-RUN echo "=== Checking ROOT directory ===" && \
-    ls -laR /usr/local/tomcat/webapps/ROOT/ | head -50
-
-# Set environment variables
+# Set default environment variable for DB driver
 ENV DB_DRIVER=com.mysql.cj.jdbc.Driver
 
-# Expose port
+# Expose Tomcat port
 EXPOSE 8080
 
-# Start Tomcat (default CMD from base image)
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8080/ || exit 1
+
+# Start Tomcat
+CMD ["catalina.sh", "run"]

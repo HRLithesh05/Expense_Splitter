@@ -12,32 +12,6 @@
         <welcome-file>summary.jsp</welcome-file>
     </welcome-file-list>
     
-    <!-- Servlet Mappings (if @WebServlet doesn't work) -->
-    <servlet>
-        <servlet-name>AddMemberServlet</servlet-name>
-        <servlet-class>servlet.AddMemberServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AddMemberServlet</servlet-name>
-        <url-pattern>/AddMemberServlet</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
-        <servlet-name>AddExpenseServlet</servlet-name>
-        <servlet-class>servlet.AddExpenseServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AddExpenseServlet</servlet-name>
-        <url-pattern>/AddExpenseServlet</url-pattern>
-    </servlet-mapping>
-    
-    <servlet>
-        <servlet-name>ClearDatabaseServlet</servlet-name>
-        <servlet-class>servlet.ClearDatabaseServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ClearDatabaseServlet</servlet-name>
-        <url-pattern>/ClearDatabaseServlet</url-pattern>
-    </servlet-mapping>
+    <!-- No servlet mappings needed - using @WebServlet annotations -->
     
 </web-app>
