@@ -1,37 +1,43 @@
 FROM tomcat:10-jdk17
 
-WORKDIR /usr/local/tomcat
+# Remove all default webapps
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Remove default ROOT
-RUN rm -rf webapps/ROOT
+# Create ROOT directory structure
+RUN mkdir -p /usr/local/tomcat/webapps/ROOT/WEB-INF/classes \
+             /usr/local/tomcat/webapps/ROOT/WEB-INF/lib
 
-# Create ROOT app (deployed at /)
-RUN mkdir -p webapps/ROOT/WEB-INF/{classes,lib}
+# Download MySQL JDBC driver directly to lib
+ADD https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar \
+    /usr/local/tomcat/webapps/ROOT/WEB-INF/lib/
 
-# Copy web resources to ROOT
-COPY src/main/webapp/ webapps/ROOT/
+# Download Jakarta Servlet API for compilation
+ADD https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/5.0.0/jakarta.servlet-api-5.0.0.jar \
+    /tmp/servlet-api.jar
 
-# Download MySQL connector AND Jakarta servlet-api
-RUN curl -fsSL -o webapps/ROOT/WEB-INF/lib/mysql-connector-j-8.0.33.jar \
-  https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/8.0.33/mysql-connector-j-8.0.33.jar && \
-  curl -fsSL -o /tmp/servlet-api.jar \
-  https://repo1.maven.org/maven2/jakarta/servlet/jakarta.servlet-api/5.0.0/jakarta.servlet-api-5.0.0.jar
+# Copy all webapp content
+COPY src/main/webapp/ /usr/local/tomcat/webapps/ROOT/
 
-# Copy Java sources
-COPY src/main/java/ /tmp/java
+# Copy Java source files temporarily
+COPY src/main/java /tmp/src
 
-# Compile with Jakarta servlet-api on classpath
-RUN find /tmp/java -name "*.java" > /tmp/sources.txt && \
+# Compile all Java files
+RUN cd /tmp/src && \
+    find . -name "*.java" > sources.txt && \
     javac -encoding UTF-8 \
-      -cp "/usr/local/tomcat/lib/*:webapps/ROOT/WEB-INF/lib/*:/tmp/servlet-api.jar" \
-      -d webapps/ROOT/WEB-INF/classes \
-      @/tmp/sources.txt && \
-    rm -rf /tmp/java /tmp/sources.txt /tmp/servlet-api.jar
+          -cp "/usr/local/tomcat/lib/*:/usr/local/tomcat/webapps/ROOT/WEB-INF/lib/*:/tmp/servlet-api.jar" \
+          -d /usr/local/tomcat/webapps/ROOT/WEB-INF/classes \
+          @sources.txt && \
+    rm -rf /tmp/src /tmp/servlet-api.jar
 
-# Show what was created (debug)
-RUN echo "=== ROOT contents ===" && ls -la webapps/ROOT/ && \
-    echo "=== JSP files ===" && find webapps/ROOT -name "*.jsp" && \
-    echo "=== Compiled classes ===" && find webapps/ROOT/WEB-INF/classes -name "*.class"
+# Verify what was created
+RUN echo "=== Checking ROOT directory ===" && \
+    ls -laR /usr/local/tomcat/webapps/ROOT/ | head -50
 
-EXPOSE 8080
+# Set environment variables
 ENV DB_DRIVER=com.mysql.cj.jdbc.Driver
+
+# Expose port
+EXPOSE 8080
+
+# Start Tomcat (default CMD from base image)
